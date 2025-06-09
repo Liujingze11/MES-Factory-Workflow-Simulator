@@ -1,21 +1,31 @@
+<!-- 
+  工厂流程模拟器 - HTML 文件
+  功能：模拟工厂物料从起点到终点的流动过程
+  作者：[你的名字]
+  日期：[创建日期]
+  版本：1.0
+-->
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
   <title>工厂流程模拟器</title>
   <script src="https://d3js.org/d3.v7.min.js"></script>
-  <style>
+<style>
+    /* 页面基础样式 */
     body {
       font-family: 'Helvetica Neue', sans-serif;
       margin: 40px;
       background-color: #f9f9f9;
     }
 
+    /* 主标题样式 */
     h1 {
       font-size: 28px;
       margin-bottom: 20px;
     }
 
+    /* 控制面板容器样式 */
     div {
       margin-bottom: 20px;
       background-color: #ffffff;
@@ -25,12 +35,14 @@
       display: inline-block;
     }
 
+    /* 下拉选择框和按钮共用样式 */
     select, button {
       font-size: 14px;
       padding: 5px 10px;
       margin-right: 10px;
     }
 
+    /* 按钮特殊样式 */
     button {
       background-color: #f1c40f;
       border: none;
@@ -38,23 +50,28 @@
       cursor: pointer;
     }
 
+    /* 按钮悬停效果 */
     button:hover {
       background-color: #d4ac0d;
     }
 
+    /* SVG 画布样式 */
     svg {
       background-color: #fff;
       border: 1px solid #ddd;
       border-radius: 6px;
     }
 
+    /* 文本元素样式（防止事件干扰） */
     text {
       pointer-events: none;
     }
   </style>
 </head>
 
+
 <body>
+  <!--起点终点 选择框  -->
   <h1>工厂流程模拟器</h1>
   <div>
     起点：
@@ -62,6 +79,7 @@
       <option value="A60 收货区">A60 收货区</option>
       <option value="A70 收货区">A70 收货区</option>
     </select>
+
     <select id="end">
       <option value="生产线">生产线</option>
       <option value="大件立体库">大件立体库</option>
@@ -74,6 +92,7 @@
   <svg width="1400" height="800" id="flowchart"></svg>
 
   <script>
+    // 定义各节点在SVG中的坐标位置
     const pos = {
       "A70 收货区": [150, 100],
       "A70 转包区": [400, 100],
@@ -88,13 +107,15 @@
       "生产线": [1200, 500]
     };
 
+    // 定义节点的大小（普通节点和大节点）
     const nodeSize = {
-      width: 100,
-      height: 60,
-      bigWidth: 140,
-      bigHeight: 80
+      width: 100,     // 普通节点宽度
+      height: 60,     // 普通节点高度
+      bigWidth: 140,  // 大节点宽度（如生产线）
+      bigHeight: 80   // 大节点高度
     };
-
+  
+    // 定义节点之间的连接关系
     const links = [
       ["A70 收货区", "A70 转包区"],
       ["A70 转包区", "A70 转运"],
@@ -108,6 +129,18 @@
       ["超市1.0", "生产线"]
     ];
 
+      /**
+   * 计算两个节点之间连接线的起点和终点坐标
+   * @param {number} x1 - 起点节点x坐标
+   * @param {number} y1 - 起点节点y坐标
+   * @param {number} w1 - 起点节点宽度
+   * @param {number} h1 - 起点节点高度
+   * @param {number} x2 - 终点节点x坐标
+   * @param {number} y2 - 终点节点y坐标
+   * @param {number} w2 - 终点节点宽度
+   * @param {number} h2 - 终点节点高度
+   * @return {Array} 包含起点和终点坐标的数组 [[srcX, srcY], [dstX, dstY]]
+   */
     function computeBorderEndpoints(x1, y1, w1, h1, x2, y2, w2, h2) {
       const dx = x2 - x1;
       const dy = y2 - y1;
@@ -129,6 +162,7 @@
       return [[srcX, srcY], [dstX, dstY]];
     }
 
+    
     function drawFlow(path) {
       const svg = d3.select("#flowchart");
       svg.selectAll("*").remove();
@@ -324,26 +358,37 @@
           if (onEnd) onEnd();
         });
     }
-
-    function simulate() {
+  function simulate() {
       const start = document.getElementById("start").value;
       const end = document.getElementById("end").value;
 
       fetch("http://127.0.0.1:5000/simulate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ start, end })
+        method: "POST",  // 确保这里是 POST
+        headers: { 
+          "Content-Type": "application/json"  // 确保有这个请求头
+        },
+        body: JSON.stringify({ start, end })  // 确保有发送数据
       })
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
-            drawFlow(data.path);
-            animateMaterial(data.path);
-          } else {
-            alert("未找到路径！");
-          }
-        });
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then(data => {
+        if (data.success) {
+          drawFlow(data.path);
+          animateMaterial(data.path);
+        } else {
+          alert("未找到路径！");
+        }
+      })
+      .catch(error => {
+        console.error("Error:", error);
+        alert("请求失败: " + error.message);
+      });
     }
+
   </script>
 </body>
 </html>
