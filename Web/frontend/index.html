@@ -1,10 +1,12 @@
 <!-- 
-  工厂流程模拟器 - HTML 文件
+  工厂流程模拟器 - 物料图
   功能：模拟工厂物料从起点到终点的流动过程
-  作者：[你的名字]
-  日期：[创建日期]
+  作者：刘竞泽
+  日期：2025.06.09
   版本：1.0
 -->
+
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -162,18 +164,24 @@
       return [[srcX, srcY], [dstX, dstY]];
     }
 
-    
+    /**
+    * 使用D3.js绘制流程图，并高亮显示指定路径
+    * @param {Array} path - 需要高亮的节点名称数组（如：["节点A", "节点B"]）
+    */
     function drawFlow(path) {
-      const svg = d3.select("#flowchart");
-      svg.selectAll("*").remove();
+    // 1. 初始化SVG画布
+      const svg = d3.select("#flowchart"); // 选择ID为flowchart的SVG元素
+      svg.selectAll("*").remove(); // 清空画布（移除所有现有元素）
 
+      // 2. 设置缩放行为
       const zoom = d3.zoom().on("zoom", (event) => {
-        g.attr("transform", event.transform);
+        g.attr("transform", event.transform);// 缩放时更新group的transform属性
       });
-      svg.call(zoom);
+      svg.call(zoom);// 将缩放行为绑定到SVG上
 
       const g = svg.append("g");
 
+      // 4. 定义箭头标记（用于连线末端）
       g.append("defs").append("marker")
         .attr("id", "arrow")
         .attr("viewBox", "0 -5 10 10")
@@ -186,6 +194,7 @@
         .attr("d", "M0,-5L10,0L0,5")
         .attr("fill", "gray");
 
+        // 5. 绘制所有节点
       Object.entries(pos).forEach(([name, [x, y]]) => {
         const isBig = name === "生产线";
         const width = isBig ? nodeSize.bigWidth : nodeSize.width;
@@ -227,6 +236,8 @@
       });
     }
 
+
+// 5. 创建表示物料的圆形（红色小球）
     function animateMaterial(path) {
       const svg = d3.select("#flowchart");
       const g = svg.select("g");
@@ -244,6 +255,8 @@
         .attr("cx", pos[path[0]][0])
         .attr("cy", pos[path[0]][1] + 40);
 
+
+      // 5. 辅助函数：移动到下一个节点
       function moveToNext() {
         if (stepIndex >= path.length - 1) return;
 
@@ -274,11 +287,13 @@
               material.remove();
               splitA70();
             } else {
+              // 开始动画
               moveToNext();
             }
           });
       }
 
+      // 处理MSU站点的分流动画(分两条路径：到超市1.0和生产线)
       function splitMSU() {
         const [mx, my] = pos["MSU站点"];
         let done = 0;
@@ -310,12 +325,14 @@
 
         animateFromBranch("MSU站点", "生产线", branchB, finish);
 
+
         function finish() {
           done++;
           if (done === 2) setTimeout(() => animateMaterial(path), 1000);
         }
       }
 
+      // 处理A70转运的分流动画(分三条路径)
       function splitA70() {
         const [tx, ty] = pos["A70 转运"];
         const targets = ["大件立体库", "立体库上架缓存区", "A70 地堆存储区"];
@@ -339,6 +356,7 @@
       moveToNext();
     }
 
+    // 处理从分支节点开始的动画
     function animateFromBranch(start, end, circleSel, onEnd) {
       const [x1, y1] = pos[start];
       const [x2, y2] = pos[end];
@@ -358,6 +376,8 @@
           if (onEnd) onEnd();
         });
     }
+
+    // 主模拟函数，处理用户交互
   function simulate() {
       const start = document.getElementById("start").value;
       const end = document.getElementById("end").value;
