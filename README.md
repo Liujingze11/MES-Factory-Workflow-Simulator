@@ -1,8 +1,3 @@
-当然可以，以下是为你的项目 **MES-Factory-Workflow-Simulator** 准备的英文版 `README.md`，适配你当前的项目结构（包含 backend/frontend/images）：
-
----
-
-```markdown
 # 🏭 MES-Factory-Workflow-Simulator
 
 **MES-Factory-Workflow-Simulator** is a lightweight factory workflow simulator designed for visualizing and querying logistics paths in a manufacturing environment. It is built with a Flask backend and a static HTML frontend, ideal for prototyping MES (Manufacturing Execution System) or digital twin scenarios.
